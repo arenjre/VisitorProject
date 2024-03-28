@@ -1,0 +1,55 @@
+
+version: '3.10'
+services:
+
+  # database:
+  #   image: mysql
+  #   container_name: database
+  #   expose:
+  #     - 3306
+  #   ports:
+  #     - 3307:3306
+  #   environment:
+  #     MYSQL_DATABASE: 'temp_db'
+  #     MYSQL_ROOT_PASSWORD: 'root'
+  #   volumes:
+  #     - database-volume:/var/lib/mysql
+
+  database:
+    image: mysql
+    container_name: database
+    # restart: always
+    expose:
+      - 3306
+    ports:
+      - 3307:3306
+    environment:
+       MYSQL_DATABASE: 'temp_db'
+       MYSQL_ROOT_PASSWORD: 'password'
+    volumes:
+      - database-volume:/var/lib/mysql
+
+  server:
+    image: backend-server
+    container_name: backend-server
+    depends_on:
+      - database
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    # restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - 8000
+    ports:
+      - 8000:8000
+    stdin_open: true
+    tty: true
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./:/app/server
+
+
+volumes:
+  database-volume:
